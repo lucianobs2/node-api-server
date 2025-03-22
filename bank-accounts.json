@@ -1,0 +1,14 @@
+[
+  {
+    "name": "XP Investimentos",
+    "initialBalance": 27000,
+    "color": "#1f1f1f",
+    "type": "INVESTMENT"
+  },
+  {
+    "name": "Nubank",
+    "initialBalance": 7000,
+    "color": "#612F74",
+    "type": "INVESTMENT"
+  }
+]
