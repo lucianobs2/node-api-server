@@ -13,5 +13,6 @@ import { env } from 'src/shared/config/env';
   ],
   controllers: [AuthController],
   providers: [AuthService],
+  exports: [JwtModule],
 })
 export class AuthModule {}
