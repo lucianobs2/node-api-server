@@ -5,9 +5,9 @@ import { BankAccountRepository } from 'src/shared/database/repositories/bank-acc
 export class ValidateBankAccountOwnershipService {
   constructor(private readonly bankAccountRepository: BankAccountRepository) {}
 
-  async validate(userId: string, bankAccountId: string) {
+  async validate(userId: string, categoryId: string) {
     const isOwner = await this.bankAccountRepository.findFirst({
-      where: { id: bankAccountId, userId },
+      where: { id: categoryId, userId },
     });
 
     if (!isOwner) {
