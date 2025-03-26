@@ -10,5 +10,11 @@
     "initialBalance": 7000,
     "color": "#612F74",
     "type": "INVESTMENT"
+  },
+  {
+    "name": "Binance",
+    "initialBalance": 0,
+    "color": "#F3BA2F",
+    "type": "INVESTMENT"
   }
 ]

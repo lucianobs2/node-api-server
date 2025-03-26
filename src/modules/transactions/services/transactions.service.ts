@@ -5,6 +5,8 @@ import { TransactionsRepository } from 'src/shared/database/repositories/transac
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { ValidateTransactionOwnershipService } from './validate-transaction-ownership.service';
 import { UpdateTransactionDto } from '../dto/update-transaction.dto';
+import { lastDayOfMonth, setHours, startOfMonth } from 'date-fns';
+import { TransactionType } from '../entities/transaction';
 
 @Injectable()
 export class TransactionsService {
@@ -38,9 +40,37 @@ export class TransactionsService {
     });
   }
 
-  async findAllByUserId(userId: string) {
-    return this.transactionsRepository.findMany({
-      where: { userId },
+  async findAllByUserId(
+    userId: string,
+    filters: {
+      year: number;
+      month: number;
+      bankAccountId?: string;
+      type?: TransactionType;
+    },
+  ) {
+    const FIRST_HOUR_OF_DAY_BRAZILIAN_UTC = -3;
+
+    const FIRST_DAY_OF_MONTH = setHours(
+      startOfMonth(new Date(Date.UTC(filters.year, filters.month, null))),
+      FIRST_HOUR_OF_DAY_BRAZILIAN_UTC,
+    );
+
+    const LAST_DAY_OF_MONTH = setHours(
+      lastDayOfMonth(new Date(filters.year, filters.month, null)),
+      FIRST_HOUR_OF_DAY_BRAZILIAN_UTC,
+    );
+
+    return await this.transactionsRepository.findMany({
+      where: {
+        userId,
+        bankAccountId: filters.bankAccountId,
+        type: filters.type,
+        date: {
+          gte: FIRST_DAY_OF_MONTH,
+          lte: LAST_DAY_OF_MONTH,
+        },
+      },
     });
   }
 
@@ -72,8 +102,17 @@ export class TransactionsService {
     });
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} transaction`;
+  async remove(userId: string, transactionId: string) {
+    await this.validateEntitiesOwnership({
+      userId,
+      transactionId,
+    });
+
+    await this.transactionsRepository.delete({
+      where: { id: transactionId },
+    });
+
+    return null;
   }
 
   private async validateEntitiesOwnership({
@@ -83,13 +122,18 @@ export class TransactionsService {
     transactionId,
   }: {
     userId: string;
-    categoryId: string;
-    bankAccountId: string;
+    categoryId?: string;
+    bankAccountId?: string;
     transactionId?: string;
   }) {
     await Promise.all([
-      this.validateBankAccountOwnershipService.validate(userId, bankAccountId),
-      this.validateCategoryOwnershipService.validate(userId, categoryId),
+      bankAccountId &&
+        this.validateBankAccountOwnershipService.validate(
+          userId,
+          bankAccountId,
+        ),
+      categoryId &&
+        this.validateCategoryOwnershipService.validate(userId, categoryId),
       transactionId &&
         this.validateTransactionOwnershipService.validate(
           userId,
